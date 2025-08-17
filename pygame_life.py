@@ -74,20 +74,63 @@ def main():
         Main entry point
     """
     grid = GOSPER_GLIDER
-
+    running_title = 'Game of Life (running)'
+    paused_title = 'Game of Life (paused)'
     pygame.init()
-    screen = pygame.display.set_mode((600, 400))
+    screen = pygame.display.set_mode((600, 600))
+    running = True
+    pygame.display.set_caption(running_title if running else paused_title)
 
+    cell_width = screen.get_width() / grid.dim.width
+    cell_height = screen.get_height() / grid.dim.height
+    last_cell_edited = None
+
+    update_speed = 0.1
+    speed_change = 0.01
     while True:
-        if pygame.QUIT in [e.type for e in pygame.event.get()]:
-            sys.exit(0)
+        for event in pygame.event.get():    
+            if event.type == pygame.QUIT:
+                sys.exit(0)
+            elif event.type == pygame.KEYDOWN:
+                if event.key == pygame.K_SPACE:
+                    running = not running
+                    pygame.display.set_caption(running_title if running else paused_title)
+                if event.key == pygame.K_c:
+                    grid.cells.clear()
+                if event.key == pygame.K_UP:
+                    if update_speed > speed_change:
+                        update_speed -= speed_change
+                if event.key == pygame.K_DOWN:
+                    update_speed += speed_change
+        
+        mouse_press = pygame.mouse.get_pressed()
+        if any(mouse_press):
+            pos = pygame.mouse.get_pos()
+            col = int(pos[0] // cell_width)
+            row = int(pos[1] // cell_height)
+            cell = (col, row)
+            if 0 <= col < grid.dim.width and 0 <= row < grid.dim.height and last_cell_edited != cell:
+                if mouse_press[1]:
+                    if cell in grid.cells:
+                        grid.cells.discard(cell)
+                    else:
+                        grid.cells.add(cell)
+                elif mouse_press[0]:
+                    grid.cells.add(cell)
+                elif mouse_press[2]:
+                    grid.cells.discard(cell)
+
+                last_cell_edited = cell
+        else:
+            last_cell_edited = None
+    
+        if running:
+            grid = update_grid(grid)
+            time.sleep(update_speed)
 
         screen.fill((0, 0, 0))
         draw_grid(screen, grid)
-        grid = update_grid(grid)
-        pygame.display.flip()
-        time.sleep(0.1)
-
-
+        pygame.display.flip()    
+        
 if __name__ == "__main__":
     main()

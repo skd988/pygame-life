@@ -1,6 +1,6 @@
 # Pygame Of Life
 
-Implementation of Conway's "Game Of Life" in less than 100
+Implementation of Conway's "Game Of Life" in less than 100 (ignoring the added interactivity features)
 lines of modern Python.
 
 ![](https://raw.githubusercontent.com/matheusgomes28/pygame-life/main/media/pygame-of-life.gif)
@@ -32,3 +32,23 @@ python pygame_life.py
 This game was created for a post in my  personal blog.
 The intention was to show that, by keeping it simple, [Conway's Game Of Life 
 can be implemented in a few lines of Python](https://matgomes.com/conways-game-of-life-python).
+
+Interactivty by skd988.
+
+## Interactivity
+### Mouse:
+Left click - set cell (alive)
+
+Right click - clear cell (dead)
+
+Middle click - toggle cell
+
+### Keyboard:
+Space - play/pause
+
+C - clear all cells (dead)
+
+Up Arrow - increase speed
+
+Down Arrow - decrease speed
+
