@@ -76,6 +76,7 @@ def main():
     grid = GOSPER_GLIDER
     running_title = 'Game of Life (running)'
     paused_title = 'Game of Life (paused)'
+
     pygame.init()
     screen = pygame.display.set_mode((600, 600))
     running = True
@@ -124,13 +125,13 @@ def main():
         else:
             last_cell_edited = None
     
-        if running:
-            grid = update_grid(grid)
-            time.sleep(update_speed)
 
         screen.fill((0, 0, 0))
         draw_grid(screen, grid)
         pygame.display.flip()    
+        if running:
+            grid = update_grid(grid)
+            time.sleep(update_speed)
         
 if __name__ == "__main__":
     main()
