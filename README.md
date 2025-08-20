@@ -52,3 +52,4 @@ Up Arrow - increase speed
 
 Down Arrow - decrease speed
 
+Right Arrow - advance one update (while paused)

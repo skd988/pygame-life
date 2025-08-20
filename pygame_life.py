@@ -10,8 +10,8 @@ from copy import deepcopy
 
 import pygame
 
-from example_grids import GOSPER_GLIDER
-from grid_defs import Grid, Neighbours
+from example_grids import SIMPLE, GOSPER_GLIDER
+from grid_defs import Dim, Grid, Neighbours
 
 
 def get_neighbours(grid: Grid, x: int, y: int) -> Neighbours:
@@ -69,6 +69,30 @@ def draw_grid(screen: pygame.Surface, grid: Grid) -> None:
         )
 
 
+def convert_to_list(grid):
+    """
+        This function converts to a 2D array grid format from a set of alive cells format
+    """
+    new_grid = [deepcopy([False] * grid.dim.width) for _ in range(grid.dim.height)]
+    for x,y in grid.cells:
+        new_grid[y][x] = True
+    
+    return new_grid
+
+
+def convert_to_set(grid):
+    """
+        This function converts to a set of alive cells format from 2D array grid format
+    """
+    new_grid = Grid(Dim(len(grid), len(grid[0])), set())
+    for row in range(len(grid)):
+        for col in range(len(grid[0])):
+            if grid[row][col]:
+                new_grid.cells.add((row, col))
+    
+    return new_grid
+
+
 def main():
     """
         Main entry point
@@ -77,7 +101,11 @@ def main():
     running_title = 'Game of Life (running)'
     paused_title = 'Game of Life (paused)'
 
+    input_repeat_interval = 30
+    input_repeat_delay = 200
+
     pygame.init()
+    pygame.key.set_repeat(input_repeat_delay, input_repeat_interval)
     screen = pygame.display.set_mode((600, 600))
     running = True
     pygame.display.set_caption(running_title if running else paused_title)
@@ -87,7 +115,9 @@ def main():
     last_cell_edited = None
 
     update_speed = 0.1
-    speed_change = 0.01
+    speed_change_factor = 1.1
+    last_update_time = time.time()
+
     while True:
         for event in pygame.event.get():    
             if event.type == pygame.QUIT:
@@ -99,39 +129,41 @@ def main():
                 if event.key == pygame.K_c:
                     grid.cells.clear()
                 if event.key == pygame.K_UP:
-                    if update_speed > speed_change:
-                        update_speed -= speed_change
+                    update_speed /= speed_change_factor
                 if event.key == pygame.K_DOWN:
-                    update_speed += speed_change
-        
-        mouse_press = pygame.mouse.get_pressed()
-        if any(mouse_press):
-            pos = pygame.mouse.get_pos()
-            col = int(pos[0] // cell_width)
-            row = int(pos[1] // cell_height)
-            cell = (col, row)
-            if 0 <= col < grid.dim.width and 0 <= row < grid.dim.height and last_cell_edited != cell:
-                if mouse_press[1]:
-                    if cell in grid.cells:
-                        grid.cells.discard(cell)
-                    else:
+                    update_speed *= speed_change_factor
+                if event.key == pygame.K_RIGHT and not running:
+                    grid = update_grid(grid)
+                            
+            mouse_press = pygame.mouse.get_pressed()
+            if any(mouse_press):
+                pos = pygame.mouse.get_pos()
+                col = int(pos[0] // cell_width)
+                row = int(pos[1] // cell_height)
+                cell = (col, row)
+                if 0 <= col < grid.dim.width and 0 <= row < grid.dim.height and last_cell_edited != cell:
+                    if mouse_press[1]:
+                        if cell in grid.cells:
+                            grid.cells.discard(cell)
+                        else:
+                            grid.cells.add(cell)
+                    elif mouse_press[0]:
                         grid.cells.add(cell)
-                elif mouse_press[0]:
-                    grid.cells.add(cell)
-                elif mouse_press[2]:
-                    grid.cells.discard(cell)
+                    elif mouse_press[2]:
+                        grid.cells.discard(cell)
 
-                last_cell_edited = cell
-        else:
-            last_cell_edited = None
+                    last_cell_edited = cell
+            else:
+                last_cell_edited = None
     
 
         screen.fill((0, 0, 0))
         draw_grid(screen, grid)
-        pygame.display.flip()    
-        if running:
+        pygame.display.flip()
+        now = time.time()
+        if running and now - last_update_time > update_speed:
+            last_update_time = now
             grid = update_grid(grid)
-            time.sleep(update_speed)
         
 if __name__ == "__main__":
     main()
