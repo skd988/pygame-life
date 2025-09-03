@@ -106,10 +106,22 @@ def main():
 
     pygame.init()
     pygame.key.set_repeat(input_repeat_delay, input_repeat_interval)
-    screen = pygame.display.set_mode((600, 600))
+    mon_height = pygame.display.Info().current_h
+    mon_width = pygame.display.Info().current_w
+
+    screen_percent = 0.88
+    
+    if mon_height < mon_width:
+        screen_height = mon_height * screen_percent
+        screen_width = screen_height * grid.dim.width / grid.dim.height
+    else:
+        screen_width = mon_width * screen_percent
+        screen_height = screen_width * grid.dim.height / grid.dim.width
+
+
+    screen = pygame.display.set_mode((screen_width, screen_height))
     running = True
     pygame.display.set_caption(running_title if running else paused_title)
-
     cell_width = screen.get_width() / grid.dim.width
     cell_height = screen.get_height() / grid.dim.height
     last_cell_edited = None
