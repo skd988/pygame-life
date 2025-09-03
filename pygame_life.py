@@ -93,22 +93,27 @@ def convert_to_set(grid):
     return new_grid
 
 
-def main():
+def save_state(grid, save_path):
     """
-        Main entry point
+        This function writes the current grid into a file
     """
-    grid = GOSPER_GLIDER
-    running_title = 'Game of Life (running)'
-    paused_title = 'Game of Life (paused)'
+    with open(save_path, 'w') as file:
+        file.write(str(grid).replace('Dimension', 'Dim'))
+        file.close()
 
-    input_repeat_interval = 30
-    input_repeat_delay = 200
 
-    pygame.init()
-    pygame.key.set_repeat(input_repeat_delay, input_repeat_interval)
-    mon_height = pygame.display.Info().current_h
-    mon_width = pygame.display.Info().current_w
+def load_state(save_path):
+    """
+        This function reads a saved grid from a file
+    """
+    with open(save_path, 'r') as file:
+        return eval(file.read())
 
+
+def create_new_screen(grid, mon_height, mon_width):
+    """
+        This function creates a screen for the grid based on the monitor size
+    """
     screen_percent = 0.88
     
     if mon_height < mon_width:
@@ -119,11 +124,30 @@ def main():
         screen_height = screen_width * grid.dim.height / grid.dim.width
 
 
-    screen = pygame.display.set_mode((screen_width, screen_height))
+    return pygame.display.set_mode((screen_width, screen_height))
+
+def main():
+    """
+        Main entry point
+    """
+    save_path = 'save'
+    grid = GOSPER_GLIDER
+    running_title = 'Game of Life (running)'
+    paused_title = 'Game of Life (paused)'
+
+    input_repeat_interval = 30
+    input_repeat_delay = 200
+
+    pygame.init()
+    pygame.key.set_repeat(input_repeat_delay, input_repeat_interval)
+
     running = True
     pygame.display.set_caption(running_title if running else paused_title)
-    cell_width = screen.get_width() / grid.dim.width
-    cell_height = screen.get_height() / grid.dim.height
+
+    display_info = pygame.display.Info()
+    screen = create_new_screen(grid, display_info.current_h, display_info.current_w)
+    cell_size = screen.get_width() / grid.dim.width
+
     last_cell_edited = None
 
     update_speed = 0.1
@@ -146,12 +170,23 @@ def main():
                     update_speed *= speed_change_factor
                 if event.key == pygame.K_RIGHT and not running:
                     grid = update_grid(grid)
-                            
+                if event.key == pygame.K_s:
+                    save_state(grid, save_path)
+                if event.key == pygame.K_l:
+                    loaded_grid = load_state(save_path)
+                    if loaded_grid != None:
+                        if grid.dim != loaded_grid.dim:
+                            pygame.display.quit()
+                            screen = create_new_screen(loaded_grid, display_info.current_h, display_info.current_w)
+                            cell_size = screen.get_width() / loaded_grid.dim.width
+                        grid = loaded_grid
+                        last_update_time = now
+
             mouse_press = pygame.mouse.get_pressed()
             if any(mouse_press):
                 pos = pygame.mouse.get_pos()
-                col = int(pos[0] // cell_width)
-                row = int(pos[1] // cell_height)
+                col = int(pos[0] // cell_size)
+                row = int(pos[1] // cell_size)
                 cell = (col, row)
                 if 0 <= col < grid.dim.width and 0 <= row < grid.dim.height and last_cell_edited != cell:
                     if mouse_press[1]:

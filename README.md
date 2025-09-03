@@ -48,6 +48,10 @@ Space - play/pause
 
 C - clear all cells (dead)
 
+S - save current grid into file
+
+L - load grid from file
+
 Up Arrow - increase speed
 
 Down Arrow - decrease speed
